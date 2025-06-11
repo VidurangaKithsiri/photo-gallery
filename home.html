@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Photo Gallery</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Montserrat', sans-serif; background: #f4f7fa; color: #333; }
+    header { background: linear-gradient(to right, #2980b9, #6dd5fa); color: white; padding: 20px; position: relative; }
+    header h1 { font-size: 2.5rem; margin-bottom: 10px; text-align: center; }
+    header p { font-size: 1.2rem; max-width: 700px; margin: 0 auto; text-align: center; }
+    .auth-buttons { position: absolute; top: 20px; right: 20px; }
+    .auth-buttons button {
+      margin-left: 10px; padding: 10px 20px; border: none;
+      background-color: #ffffff; color: #2980b9; font-weight: bold;
+      border-radius: 20px; cursor: pointer; transition: all 0.3s ease;
+    }
+    .auth-buttons button:hover { background-color: #f1f1f1; transform: scale(1.05); }
+    main { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+    .gaYllery { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .gallery-item { position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: transform 0.3s ease; background: white; }
+    .gallery-item:hover { transform: scale(1.03); }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s ease; }
+    .gallery-caption { position: absolute; bottom: 0; background: rgba(0, 0, 0, 0.5); width: 100%; padding: 10px 15px; color: #fff; font-weight: 600; text-align: center; opacity: 0; transition: opacity 0.4s ease; }
+    .gallery-item:hover .gallery-caption { opacity: 1; }
+    footer { margin: 50px 0 20px; text-align: center; font-weight: 600; color: #555; }
+    .modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(0,0,0,0.5); padding-top: 80px; }
+    .modal-content {
+      background: white; margin: auto; padding: 40px; border-radius: 10px;
+      max-width: 400px; box-shadow: 0 10px 20px rgba(0,0,0,0.25); position: relative;
+    }
+    .modal-content h2 { margin-bottom: 20px; color: #2980b9; }
+    .modal-content input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    .modal-content button { width: 100%; padding: 10px; background: #2980b9; color: white; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s ease; }
+    .modal-content button:hover { background: #1f6aa5; }
+    .close { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #999; }
+    #uploadBtn {
+      display: none;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 30px;
+      background: #2980b9;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 10;
+    }
+    #uploadBtn:hover { background: #1f6aa5; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <button id="uploadBtn" onclick="uploadPhoto()">Upload Photo</button>
+
+    <div class="auth-buttons">
+      <button onclick="openModal('signup')">Sign Up</button>
+      <button onclick="openModal('login')">Login</button>
+    </div>
+
+    <h1>Welcome to Our Photo Gallery</h1>
+    <p>Share your memories with us. Share your best photograph ever that you have taken!</p>
+  </header>
+
+  <main>
+    <div class="gallery">
+      <div class="gallery-item">
+        <img src="https://www.shutterstock.com/image-photo/maldives-islands-ocean-tropical-beach-600nw-1938868960.jpg" alt="Beautiful Sea" />
+        <div class="gallery-caption">Beautiful Sea</div>
+      </div>
+      <div class="gallery-item">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYwlCVUwxTF1SiY17uXeeHsGEvs7WzBxYZcg&s" alt="City at Night" />
+        <div class="gallery-caption">City at Night</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>© 2025 Photo Gallery. All rights reserved.</footer>
+
+ <!-- Signup Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('signupModal')">&times;</span>
+    <h2>Sign Up</h2>
+    <input type="text" placeholder="Username" id="signup-username" />
+    <input type="email" placeholder="Email" id="signup-email" />
+    <input type="password" placeholder="Password" id="signup-password" />
+    <button onclick="signupUser()">Sign Up</button>
+  </div>
+</div>
+
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('loginModal')">&times;</span>
+      <h2>Login</h2>
+      <input id="login-email" type="email" placeholder="Email" />
+      <input id="login-password" type="password" placeholder="Password" />
+      <button onclick="loginUser()">Login</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <script>
+    function openModal(type) {
+      document.getElementById(type + 'Modal').style.display = 'block';
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.style.display = "none";
+      }
+    }
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyBHNOY40EyvdcIRQTJwNLdXGstXBPduuWI",
+  authDomain: "photo-gallery-app-4097f.firebaseapp.com",
+  projectId: "photo-gallery-app-4097f",
+  storageBucket: "photo-gallery-app-4097f.appspot.com",
+  messagingSenderId: "769771220620",
+  appId: "1:769771220620:web:925cc1f8d5a870d5b315a9",
+  measurementId: "G-MVTKW8JW29"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    function signupUser() {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(() => {
+          alert("Signup successful!");
+          closeModal('signupModal');
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+    }
+
+    function loginUser() {
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          alert("Login successful!");
+          closeModal('loginModal');
+        })
+        .catch(error => {
+          alert("Error: " + error.message);
+        });
+    }
+
+    // Check user authentication state
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        document.getElementById('uploadBtn').style.display = 'block';
+      } else {
+        document.getElementById('uploadBtn').style.display = 'none';
+      }
+    });
+
+    function uploadPhoto() {
+      const user = auth.currentUser;
+      if (user) {
+        alert("Here you can add photo upload functionality!");
+        // Here you can build file picker / file uploader
+      } else {
+        openModal('login');
+      }
+    }
+  </script>
+
+</body>
+</html>

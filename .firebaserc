@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "photo-gallery-app-4097f"
-  }
+    "default": "photo-gallery-app-4097f",
+    "live": "photo-gallery-app-4097f"
+  },
+  "targets": {},
+  "etags": {}
 }
